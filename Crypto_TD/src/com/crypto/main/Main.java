@@ -16,8 +16,6 @@ public class Main {
 		System.out.println("Message déchiffré : " + cesar.decode(messageToDecode, alphabet, 'l'));
 		cesar.decrypt("MH SHQVH TXH FHVW DFTXLV", alphabet);
 	}
-	
-	
 }
 
 
