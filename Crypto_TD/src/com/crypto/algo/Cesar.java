@@ -33,7 +33,7 @@ public class Cesar {
 	public String encrypt(String sentence, char[] alphabet, char letter) {
 		letter = Character.toUpperCase(letter);
 		char[] keyAlphabet = createKeyAlphabet(alphabet, letter);
-		char sentenceChar[] = sentence.toUpperCase().toCharArray();
+		char sentenceChar[] = sentence.replace(" ", "").toUpperCase().toCharArray();
 		char encryptSentence[] = new char[sentence.length()];
 		if(keyAlphabet != null) {
 			for(int i = 0; i < sentenceChar.length; i++) {
