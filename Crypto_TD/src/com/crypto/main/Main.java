@@ -8,6 +8,8 @@ import com.crypto.algo.Vigenere;
 
 public class Main {
 
+	public static final int STOP_OPTION = 4;
+	
 	public static void main(String[] args) {
 		Cesar cesar = new Cesar();
 		Permutation permutation = new Permutation();
@@ -20,17 +22,17 @@ public class Main {
 		char key;
 		int opt = 0;
 		Scanner sc = new Scanner(System.in); 
-		while(opt != 8) {
-			System.out.println("========================================");
-		    System.out.println("|         CHOISIR UN ALGORITHME        |");
-		    System.out.println("========================================");
-		    System.out.println("| Options:                             |");
-		    System.out.println("|        1. Algorithme de César        |");
-		    System.out.println("|        2. Algorithme de permutation  |");
-		    System.out.println("|        3. Algorithme de Vigenère     |");
-		    System.out.println("|        4. Quitter                    |");
-		    System.out.println("========================================");
-		    System.out.println("Veullez entrer votre choix :");
+		System.out.println("========================================");
+	    System.out.println("|         CHOISIR UN ALGORITHME        |");
+	    System.out.println("========================================");
+	    System.out.println("| Options:                             |");
+	    System.out.println("|        1. Algorithme de César        |");
+	    System.out.println("|        2. Algorithme de permutation  |");
+	    System.out.println("|        3. Algorithme de Vigenère     |");
+	    System.out.println("|        4. Quitter                    |");
+	    System.out.println("========================================");
+		while(opt != STOP_OPTION) {
+		    System.out.println("\nVeullez entrer votre choix :");
 		    opt = sc.nextInt();
 		    
 		    switch(opt) {
@@ -45,7 +47,7 @@ public class Main {
 				    System.out.println("|        3. Décryptage                 |");
 				    System.out.println("|        4. Quitter                    |");
 				    System.out.println("========================================");
-				    System.out.println("Veullez entrer votre choix :");
+				    System.out.println("\nVeullez entrer votre choix :");
 				    cesarOption = sc.nextInt();
 				    switch(cesarOption) {
 				    	case 1 :
@@ -93,7 +95,7 @@ public class Main {
 				    System.out.println("|        4. Décrypter avec la fréquence d'apparition des lettres  |");
 				    System.out.println("|        5. Quitter                                               |");
 				    System.out.println("===================================================================");
-				    System.out.println("Veullez entrer votre choix :");
+				    System.out.println("\nVeullez entrer votre choix :");
 				    permutationOption = sc.nextInt();
 				    switch(permutationOption) {
 					    case 1 :
@@ -141,7 +143,7 @@ public class Main {
 				    System.out.println("|        3. Décryptage                        |");
 				    System.out.println("|        9. Quitter                           |");
 				    System.out.println("===============================================");
-				    System.out.println("Veullez entrer votre choix :");
+				    System.out.println("\nVeullez entrer votre choix :");
 				    vigenereOption = sc.nextInt();
 				    switch(vigenereOption) {
 				    case 1 :
@@ -163,7 +165,7 @@ public class Main {
 //				    	System.out.println(vigenere.decode(alphabet, "EYGUYFKUEKPOIPVPT", "CRYPTOGRAPHIE"));
 				    	break;
 				    case 3 :
-				    	vigenere.searchForKeyLength("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG");
+				    	vigenere.decrypt("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG", alphabet);
 				    	break;
 				    case 9 :
 				    	break;
@@ -174,6 +176,9 @@ public class Main {
 			    	break;
 			    case 4:
 			        break;
+			    case 5: 
+			    	vigenere.decrypt("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG", alphabet);
+			    	break;
 				default:
 					System.out.println("Erreur de saisie");
 					break;
