@@ -22,19 +22,18 @@ public class Main {
 		char key;
 		int opt = 0;
 		Scanner sc = new Scanner(System.in); 
-		System.out.println("========================================");
-	    System.out.println("|         CHOISIR UN ALGORITHME        |");
-	    System.out.println("========================================");
-	    System.out.println("| Options:                             |");
-	    System.out.println("|        1. Algorithme de César        |");
-	    System.out.println("|        2. Algorithme de permutation  |");
-	    System.out.println("|        3. Algorithme de Vigenère     |");
-	    System.out.println("|        4. Quitter                    |");
-	    System.out.println("========================================");
 		while(opt != STOP_OPTION) {
+			System.out.println("========================================");
+		    System.out.println("|         CHOISIR UN ALGORITHME        |");
+		    System.out.println("========================================");
+		    System.out.println("| Options:                             |");
+		    System.out.println("|        1. Algorithme de César        |");
+		    System.out.println("|        2. Algorithme de permutation  |");
+		    System.out.println("|        3. Algorithme de Vigenère     |");
+		    System.out.println("|        4. Quitter                    |");
+		    System.out.println("========================================");
 		    System.out.println("\nVeullez entrer votre choix :");
 		    opt = sc.nextInt();
-		    
 		    switch(opt) {
 			    case 1:
 			    	int cesarOption = 0;
@@ -165,7 +164,11 @@ public class Main {
 //				    	System.out.println(vigenere.decode(alphabet, "EYGUYFKUEKPOIPVPT", "CRYPTOGRAPHIE"));
 				    	break;
 				    case 3 :
-				    	vigenere.decrypt("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG", alphabet);
+				    	System.out.println("Veuillez entrer la chaine de caractères à décrypter : ");
+				    	sc.nextLine();
+				    	sentence = sc.nextLine();
+				    	System.out.println("Voici votre message déchiffré : " + vigenere.decrypt(sentence, alphabet));
+//				    	System.out.println(vigenere.decrypt("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG", alphabet));
 				    	break;
 				    case 9 :
 				    	break;
@@ -177,7 +180,6 @@ public class Main {
 			    case 4:
 			        break;
 			    case 5: 
-			    	vigenere.decrypt("QODBSWWOFOLOFMWMSZFKHSEESFWCSKJOFSTSSBEESVSCPKGOGCCXHKQAISGOG", alphabet);
 			    	break;
 				default:
 					System.out.println("Erreur de saisie");

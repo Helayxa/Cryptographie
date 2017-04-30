@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.crypto.utils.Frequency;
+
 public class Vigenere {
 	
 	public static final double COINCIDENCE_INDICATOR = 0.078;
+	private static final char E = 'E';
 	
 	public Vigenere() {
 
@@ -50,11 +53,12 @@ public class Vigenere {
 		return String.valueOf(result);
 	}
 	
-	public List<List<Character>> searchForKeyLength(String sentence, char[] alphabet) {
+	public List<String> searchForKeyLength(String sentence, char[] alphabet) {
 		double coincidenceIndicator = 0;
 		int keyLength = 0;
 		char[] sentenceAsArray = sentence.replace(" ", "").toUpperCase().toCharArray();
 		List<List<Character>> sequences = new ArrayList<>();
+		List<String> keySentences = new ArrayList<>();
 		while(coincidenceIndicator <= COINCIDENCE_INDICATOR && keyLength < sentenceAsArray.length) {
 			keyLength++;
 			coincidenceIndicator = 0;
@@ -76,28 +80,74 @@ public class Vigenere {
 			System.out.println("Impossible de trouver un indicende de coïncidence correct.");
 			keyLength = -1;
 		} else {
-			convertCharactersListToString(sequences);
+			for(List<Character> sequence : sequences) {
+				keySentences.add(convertCharactersListToString(sequence));
+			}
 		}
 		
 		System.out.println("La clé de décryptage est de longueur " + keyLength);
-		return sequences;
+		return keySentences;
 	}
 	
-	public void convertCharactersListToString(List<List<Character>> sequences) {
-		StringBuilder result = new StringBuilder(sequences.get(0).size());
-		for (Character c : sequences.get(0)) {
+	public String convertCharactersListToString(List<Character> sequence) {
+		StringBuilder result = new StringBuilder(sequence.size());
+		for (Character c : sequence) {
 		  result.append(c);
 		}
 		String output = result.toString();
+		return output;
 	}
 	
-	public void getLettersAppearanceFrequency(List<List<Character>> sequences, String sentence) {
+	public List<Frequency> getLettersAppearanceFrequency(char[] alphabet, String sentence) {
+		List<Frequency> frequencies = new ArrayList<>();
+		for (int i = 0; i < alphabet.length; i++) {
+			frequencies.add(new Frequency(alphabet[i], 0.0));
+		}
+
+		char[] sentenceArray = sentence.toUpperCase().toCharArray();
+		for (int i = 0; i < sentenceArray.length; i++) {
+			if (findIndexByLetter(alphabet, sentenceArray[i]) != -1) {
+				int index = searchLetterInList(frequencies, sentenceArray[i]);
+				if(index != -1) {
+					frequencies.get(index).increment();
+				}
+			}
+		}
 		
+		for(int i = 0; i < frequencies.size(); i++) {
+			frequencies.get(i).setAppearenceFrequency((frequencies.get(i).getAppearenceFrequency() / sentenceArray.length) * 100);
+		}
+		frequencies.sort((o1, o2) -> Double.compare(o2.getAppearenceFrequency(), o1.getAppearenceFrequency()));
+		return frequencies;
 	}
 	
-	public void decrypt(String sentence, char[] alphabet) {
-		List<List<Character>> sequences = searchForKeyLength(sentence, alphabet);
-		getLettersAppearanceFrequency(sequences, sentence);
+	private int searchLetterInList(List<Frequency> frequencies, char letter) {
+		for(int i = 0; i < frequencies.size(); i++) {
+			if(frequencies.get(i).getLetter() == letter) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public String decrypt(String sentence, char[] alphabet) {
+		List<String> sequences = searchForKeyLength(sentence, alphabet);
+		String key = searchForKey(sequences, sentence, alphabet);
+		System.out.println("La clé de décryptage est : " + key);
+		return decode(alphabet, sentence, key);
+	}
+	
+	public String searchForKey(List<String> sequences, String sentence, char[] alphabet) {
+		List<Character> key = new ArrayList<>();
+		for(String sequence : sequences) {
+			List<Frequency> frequencies = getLettersAppearanceFrequency(alphabet, sequence);
+			if(!frequencies.isEmpty()) {
+				char firstChar = frequencies.get(0).getLetter();
+				int keyLetterIndex = ((findIndexByLetter(alphabet, firstChar) - findIndexByLetter(alphabet, E)) + 26) % 26;
+				key.add(alphabet[keyLetterIndex]);
+			}
+		}
+		return convertCharactersListToString(key);
 	}
 	
 	public double calculateCoincidenceIndicator(List<Character> sequence, char[] alphabet) {
@@ -111,7 +161,7 @@ public class Vigenere {
 		for(int i = 0; i < sequence.size(); i++) {
 			frequencies.put(sequence.get(i), frequencies.get(sequence.get(i)) + 1);
 		}
-		System.out.println(frequencies);
+
 		for(Entry<Character, Double> e: frequencies.entrySet()) {
 			coincidenceIndicator += ((e.getValue() * (e.getValue() - 1.0)) / (sequence.size() * (sequence.size() - 1.0)));
 		}
