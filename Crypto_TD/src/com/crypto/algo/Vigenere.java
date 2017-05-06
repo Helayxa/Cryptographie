@@ -7,163 +7,173 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.crypto.utils.Frequency;
+import com.crypto.utils.Utils;
 
 public class Vigenere {
 	
 	public static final double COINCIDENCE_INDICATOR = 0.078;
-	private static final char E = 'E';
 	
 	public Vigenere() {
 
 	}
-	
-	public int findIndexByLetter(char[] alphabet, char letter) {
-		int indexToStart = -1;
-		/* Recherche de la première lettre de notre alphabet pour créer le nouvel alphabet avec décalage */
-		for(int i = 0; i < alphabet.length; i++) {
-			if(alphabet[i] == letter) {
-				indexToStart = i;
-				break;
+
+	/**
+	 * Permet d'encoder un texte à partir d'une clé donnée en utilisant le chiffrement de Vigenère.
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @param text : texte à encoder
+	 * @param key : clé pour encoder le texte
+	 * @return : texte encodé ou le message d'erreur s'il y en a
+	 */
+	public String encode(char[] alphabet, String text, String key) {
+		char[] keyAsArray = key.toCharArray();
+		boolean validKey = Utils.validateTextFormat(keyAsArray, alphabet);
+		if(validKey) {
+			char[] textChar = text.replace(" ", "").toCharArray();
+			boolean validText = Utils.validateTextFormat(textChar, alphabet);
+			if(validText) {
+				StringBuilder result = new StringBuilder();
+				for(int i = 0; i < textChar.length; i++) {
+					int indexToShift = Utils.findIndexByLetter(alphabet, keyAsArray[i % keyAsArray.length]);
+					int currentLetterIndexInAlphabet = Utils.findIndexByLetter(alphabet, textChar[i]);
+					int letterEncodedIndex = (currentLetterIndexInAlphabet + indexToShift) % alphabet.length;
+					result.append(alphabet[letterEncodedIndex]);
+				}
+				return result.toString();
+			} else {
+				return "Le texte n'a pas pu être encodé correctement.";
 			}
+		} else {
+			return "La clé est invalide.";
 		}
-		return indexToStart;
 	}
 	
-	public String encode(char[] alphabet, String sentence, String key) {
-		char[] keyAsArray = key.replace(" ", "").toUpperCase().toCharArray();
-		char[] sentenceAsArray = sentence.replace(" ", "").toUpperCase().toCharArray();
-		char[] result = new char[sentenceAsArray.length];
-		for(int i = 0; i < sentenceAsArray.length; i++) {
-			int indexToShift = findIndexByLetter(alphabet, keyAsArray[i % keyAsArray.length]);
-			int currentIndex = findIndexByLetter(alphabet, sentenceAsArray[i]);
-			result[i] = alphabet[(currentIndex + indexToShift) % alphabet.length];
+	/**
+	 * Permet de décoder un texte à partir d'une clé donnée en utilisant le chiffrement de Vigenère.
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @param text : texte à décoder
+	 * @param key : clé pour décoder le texte
+	 * @return : texte décodé ou le message d'erreur s'il y en a
+	 */
+	public String decode(char[] alphabet, String text, String key) {
+		char[] keyAsArray = key.toCharArray();
+		boolean validKey = Utils.validateTextFormat(keyAsArray, alphabet);
+		if(validKey) {
+			char[] textChar = text.replace(" ", "").toCharArray();
+			boolean validText = Utils.validateTextFormat(textChar, alphabet);
+			if(validText) {
+				StringBuilder result = new StringBuilder();
+				for(int i = 0; i < textChar.length; i++) {
+					int indexToShift = Utils.findIndexByLetter(alphabet, keyAsArray[i % keyAsArray.length]);
+					int currentLetterIndexInAlphabet = Utils.findIndexByLetter(alphabet, textChar[i]);
+					int letterEncodedIndex = (currentLetterIndexInAlphabet - indexToShift + 26) % alphabet.length;
+					result.append(alphabet[letterEncodedIndex]);
+				}
+				return result.toString();
+			} else {
+				return "Le texte n'a pas pu être encodé correctement.";
+			}
+		} else {
+			return "La clé est invalide.";
 		}
-		return String.valueOf(result);
 	}
 	
-	public String decode(char[] alphabet, String sentence, String key) {
-		char[] keyAsArray = key.replace(" ", "").toUpperCase().toCharArray();
-		char[] sentenceAsArray = sentence.replace(" ", "").toUpperCase().toCharArray();
-		char[] result = new char[sentenceAsArray.length];
-		for(int i = 0; i < sentenceAsArray.length; i++) {
-			int indexToShift = findIndexByLetter(alphabet, keyAsArray[i % keyAsArray.length]);
-			int currentIndex = findIndexByLetter(alphabet, sentenceAsArray[i]);
-			result[i] = alphabet[(currentIndex - indexToShift + 26) % alphabet.length];
+	/**
+	 * Permet de décoder un texte sans clé en utilisant la cryptanalyse du chiffrement de Vigenère.
+	 * @param text : texte à décrypter
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @return : le texte décrypté
+	 */
+	public String decrypt(String text, char[] alphabet) {
+		List<String> sequences = searchForKeyLength(text, alphabet);
+		if(!sequences.isEmpty() && sequences != null) {
+			String key = searchForKey(sequences, text, alphabet);
+			if(key != null && !key.isEmpty()) {
+				System.out.println("La clé de décryptage est : " + key);
+				return decode(alphabet, text, key);
+			} else {
+				return "Impossible de retrouver la clef pour décrypter";
+			}
+		} else {
+			return "Impossible de trouver la longueur de la clef";
 		}
-		return String.valueOf(result);
 	}
 	
-	public List<String> searchForKeyLength(String sentence, char[] alphabet) {
+	/**
+	 * Retourne la longueur de la clé en fonction du texte à décrypter.
+	 * @param text : texte à décrypter
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @return : longueur de la clé utilisée pour encoder le texte
+	 */
+	public List<String> searchForKeyLength(String text, char[] alphabet) {
 		double coincidenceIndicator = 0;
 		int keyLength = 0;
-		char[] sentenceAsArray = sentence.replace(" ", "").toUpperCase().toCharArray();
-		List<List<Character>> sequences = new ArrayList<>();
-		List<String> keySentences = new ArrayList<>();
-		while(coincidenceIndicator <= COINCIDENCE_INDICATOR && keyLength < sentenceAsArray.length) {
+		char[] textChar = text.replace(" ", "").toUpperCase().toCharArray();
+		List<String> sequences = new ArrayList<>();
+		while(coincidenceIndicator <= COINCIDENCE_INDICATOR && keyLength < textChar.length) {
 			keyLength++;
 			coincidenceIndicator = 0;
 			sequences.clear();
 			for(int i = 0; i < keyLength; i++) {
-				List<Character> subSequence = new ArrayList<>();
-				for(int j = 0; j < sentenceAsArray.length; j++) {
+				StringBuilder subSequence = new StringBuilder();
+				for(int j = 0; j < textChar.length; j++) {
 					if((j + i) % keyLength == 0) {
-						subSequence.add(sentenceAsArray[j]);
+						subSequence.append(textChar[j]);
 					}
 				}
-				coincidenceIndicator += calculateCoincidenceIndicator(subSequence, alphabet);
-				sequences.add(subSequence);
+				coincidenceIndicator += calculateCoincidenceIndicator(subSequence.toString(), alphabet);
+				sequences.add(subSequence.toString());
 			}
 			coincidenceIndicator /= keyLength;
 		}
-		
-		if(keyLength == sentenceAsArray.length) {
-			System.out.println("Impossible de trouver un indicende de coïncidence correct.");
-			keyLength = -1;
-		} else {
-			for(List<Character> sequence : sequences) {
-				keySentences.add(convertCharactersListToString(sequence));
-			}
-		}
-		
-		System.out.println("La clé de décryptage est de longueur " + keyLength);
-		return keySentences;
-	}
-	
-	public String convertCharactersListToString(List<Character> sequence) {
-		StringBuilder result = new StringBuilder(sequence.size());
-		for (Character c : sequence) {
-		  result.append(c);
-		}
-		String output = result.toString();
-		return output;
-	}
-	
-	public List<Frequency> getLettersAppearanceFrequency(char[] alphabet, String sentence) {
-		List<Frequency> frequencies = new ArrayList<>();
-		for (int i = 0; i < alphabet.length; i++) {
-			frequencies.add(new Frequency(alphabet[i], 0.0));
-		}
 
-		char[] sentenceArray = sentence.toUpperCase().toCharArray();
-		for (int i = 0; i < sentenceArray.length; i++) {
-			if (findIndexByLetter(alphabet, sentenceArray[i]) != -1) {
-				int index = searchLetterInList(frequencies, sentenceArray[i]);
-				if(index != -1) {
-					frequencies.get(index).increment();
-				}
-			}
+		if(keyLength == textChar.length) {
+			System.out.println("Impossible de trouver un indice de de coïncidence correct.");
 		}
 		
-		for(int i = 0; i < frequencies.size(); i++) {
-			frequencies.get(i).setAppearenceFrequency((frequencies.get(i).getAppearenceFrequency() / sentenceArray.length) * 100);
-		}
-		frequencies.sort((o1, o2) -> Double.compare(o2.getAppearenceFrequency(), o1.getAppearenceFrequency()));
-		return frequencies;
+		return sequences;
 	}
 	
-	private int searchLetterInList(List<Frequency> frequencies, char letter) {
-		for(int i = 0; i < frequencies.size(); i++) {
-			if(frequencies.get(i).getLetter() == letter) {
-				return i;
-			}
-		}
-		return -1;
-	}
-	
-	public String decrypt(String sentence, char[] alphabet) {
-		List<String> sequences = searchForKeyLength(sentence, alphabet);
-		String key = searchForKey(sequences, sentence, alphabet);
-		System.out.println("La clé de décryptage est : " + key);
-		return decode(alphabet, sentence, key);
-	}
-	
-	public String searchForKey(List<String> sequences, String sentence, char[] alphabet) {
-		List<Character> key = new ArrayList<>();
+	/**
+	 * Retourne la clé utilisée pour encoder le texte
+	 * @param sequences : Liste des sous-séquences possibles du texte en fonction de la longueur de la clef
+	 * @param text : texte à décrypter
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @return : la clé ayant permis l'encodage du texte
+	 */
+	public String searchForKey(List<String> sequences, String text, char[] alphabet) {
+		StringBuilder key = new StringBuilder();
 		for(String sequence : sequences) {
-			List<Frequency> frequencies = getLettersAppearanceFrequency(alphabet, sequence);
+			List<Frequency> frequencies = Utils.getLettersAppearanceFrequency(alphabet, sequence);
 			if(!frequencies.isEmpty()) {
 				char firstChar = frequencies.get(0).getLetter();
-				int keyLetterIndex = ((findIndexByLetter(alphabet, firstChar) - findIndexByLetter(alphabet, E)) + 26) % 26;
-				key.add(alphabet[keyLetterIndex]);
+				int keyLetterIndex = ((Utils.findIndexByLetter(alphabet, firstChar) - Utils.findIndexByLetter(alphabet, 'E')) + 26) % 26;
+				key.append(alphabet[keyLetterIndex]);
 			}
 		}
-		return convertCharactersListToString(key);
+		return key.toString();
 	}
 	
-	public double calculateCoincidenceIndicator(List<Character> sequence, char[] alphabet) {
+	/**
+	 * Permet de calculer l'indice de coïncidence d'une phrase
+	 * @param subSequence : sous-séquence provenant du découpage du texte en fonction de la longueur de la clef, pour laquelle on veut calculer l'IC
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @return : l'indice de coïncidence associé à la sous-séquence passée en paramètre
+	 */
+	public double calculateCoincidenceIndicator(String subSequence, char[] alphabet) {
 		double coincidenceIndicator = 0;
+		char[] subSequenceArray = subSequence.toCharArray();
 		Map<Character, Double> frequencies = new HashMap<>();
 		
 		for(int i = 0; i < alphabet.length; i++) {
 			frequencies.put(alphabet[i], 0.0);
 		}
 		
-		for(int i = 0; i < sequence.size(); i++) {
-			frequencies.put(sequence.get(i), frequencies.get(sequence.get(i)) + 1);
+		for(int i = 0; i < subSequenceArray.length; i++) {
+			frequencies.put(subSequenceArray[i], frequencies.get(subSequenceArray[i]) + 1);
 		}
 
 		for(Entry<Character, Double> e: frequencies.entrySet()) {
-			coincidenceIndicator += ((e.getValue() * (e.getValue() - 1.0)) / (sequence.size() * (sequence.size() - 1.0)));
+			coincidenceIndicator += ((e.getValue() * (e.getValue() - 1.0)) / (subSequenceArray.length * (subSequenceArray.length - 1.0)));
 		}
 		return coincidenceIndicator;
 	}

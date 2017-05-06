@@ -1,162 +1,121 @@
 package com.crypto.algo;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.crypto.utils.Frequency;
+import com.crypto.utils.Utils;
 
 public class Permutation {
-	
-	public static final List<Frequency> APPEARANCE_FREQUENCIES_FR = new ArrayList<>();
-	static {
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('E', 17.26));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('A', 8.40));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('S', 8.08));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('I', 7.34));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('N', 7.13));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('T', 7.07));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('R', 6.55));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('L', 6.01));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('U', 5.74));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('O', 5.26));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('D', 4.18));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('C', 3.03));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('P', 3.01));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('M', 2.96));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('V', 1.32));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('G', 1.27));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('F', 1.12));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('B', 1.06));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('Q', 0.99));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('H', 0.92));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('X', 0.45));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('J', 0.31));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('Y', 0.30));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('Z', 0.12));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('K', 0.05));
-		APPEARANCE_FREQUENCIES_FR.add(new Frequency('W', 0.04));
-	}
 
 	public Permutation() {
 
 	}
 
-	public char[] generateRandomAlphabetKey() {
-		char[] alphabet = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-				'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
-		char[] keyAlphabet = new char[26];
+	/**
+	 * Permet de générer un alphabet aléatoire qui servira de clé pour les différentes méthodes
+	 * de l'algorithme de Permutation
+	 * @param alphabet : alphabet de base avec toutes les lettres majuscules
+	 * @return : un alphabet aléatoire contenant toutes les lettres majuscules
+	 */
+	public char[] generateRandomAlphabetKey(char[] alphabet) {
+		char[] randomAlphabet = new char[alphabet.length];
 		List<Character> remainingLetters = new ArrayList<Character>();
-		// Copie de l'alphabet dans une liste
 		for (int i = 0; i < alphabet.length; i++) {
 			remainingLetters.add(alphabet[i]);
 		}
-		// Cr�ation de l'alphabet m�lang�
 		for (int i = 0; i < alphabet.length; i++) {
 			int randomIndex = (int) Math.round(Math.random() * (remainingLetters.size() - 1));
-			keyAlphabet[i] = remainingLetters.get(randomIndex);
+			randomAlphabet[i] = remainingLetters.get(randomIndex);
 			remainingLetters.remove(randomIndex);
 		}
-		return keyAlphabet;
+		return randomAlphabet;
 	}
 
-	public int findIndexByLetter(char[] alphabet, char letter) {
-		int indexToStart = -1;
-		/*
-		 * Recherche de la premi�re lettre de notre alphabet pour cr�er le
-		 * nouvel alphabet avec d�calage
-		 */
-		for (int i = 0; i < alphabet.length; i++) {
-			if (alphabet[i] == letter) {
-				indexToStart = i;
-				break;
-			}
-		}
-		return indexToStart;
-	}
-
-	public String encrypt(String sentence, char[] alphabet, char[] keyAlphabet) {
-		char sentenceChar[] = sentence.replace(" ", "").toUpperCase().toCharArray();
-		char encryptSentence[] = new char[sentence.length()];
+	/**
+	 * Permet d'encoder un texte à partir d'une clé donnée en utilisant la Permutation de lettres.
+	 * @param text : texte à encoder
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @param keyAlphabet : contient un alphabet aléatoire avec toutes les lettres en majuscule
+	 * @return : texte encodé ou le message d'erreur s'il y en a
+	 */
+	public String encode(String text, char[] alphabet, char[] keyAlphabet) {
+		char textChar[] = text.toCharArray();
+		boolean wrongText = false;
+		StringBuilder result = new StringBuilder();
 		if (keyAlphabet != null) {
-			for (int i = 0; i < sentenceChar.length; i++) {
-				int index = findIndexByLetter(alphabet, sentenceChar[i]);
-				if (index != -1) {
-					encryptSentence[i] = keyAlphabet[index];
+			for (int i = 0; i < textChar.length; i++) {
+				int index = Utils.findIndexByLetter(alphabet, textChar[i]);
+
+				if(textChar[i] == ' ') {
+					result.append(' ');
+				} else if(index != -1) {
+					result.append(keyAlphabet[index]);
+				} else {
+					System.out.println("Le caractère " + textChar[i] + " ne fait pas partie des caractères autorisés.");
+					wrongText = true;
 				}
 			}
 		} else {
-			encryptSentence = "La cl� ne fait pas partie de l'alphabet".toCharArray();
+			return "La clé est vide.";
 		}
-		return String.valueOf(encryptSentence);
+		return wrongText ? "Le texte n'a pas pu être encodé correctement." : result.toString();
 	}
 
-	public String decode(String sentence, char[] alphabet, char[] keyAlphabet) {
-		char sentenceChar[] = sentence.toUpperCase().toCharArray();
-		char encryptSentence[] = new char[sentence.length()];
+	/**
+	 * Permet de décoder un texte à partir d'une clé donnée en utilisant la Permutation de lettres.
+	 * @param text : texte à décoder
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @param keyAlphabet : contient un alphabet aléatoire avec toutes les lettres en majuscule
+	 * @return : texte décodé ou le message d'erreur s'il y en a
+	 */
+	public String decode(String text, char[] alphabet, char[] keyAlphabet) {
+		char textChar[] = text.toCharArray();
+		boolean wrongText = false;
+		StringBuilder result = new StringBuilder();
 		if (keyAlphabet != null) {
-			for (int i = 0; i < sentenceChar.length; i++) {
-				int index = findIndexByLetter(keyAlphabet, sentenceChar[i]);
-				if (index != -1) {
-					encryptSentence[i] = alphabet[index];
+			for (int i = 0; i < textChar.length; i++) {
+				int index = Utils.findIndexByLetter(keyAlphabet, textChar[i]);
+
+				if(textChar[i] == ' ') {
+					result.append(' ');
+				} else if(index != -1) {
+					result.append(alphabet[index]);
+				} else {
+					System.out.println("Le caractère " + textChar[i] + " ne fait pas partie des caractères autorisés.");
+					wrongText = true;
 				}
 			}
+		} else {
+			return "La clé est vide.";
 		}
-		return String.valueOf(encryptSentence);
-	}
-
-	public List<Frequency> getLettersAppearanceFrequency(char[] alphabet, String sentence) {
-		List<Frequency> frequencies = new ArrayList<>();
-		for (int i = 0; i < alphabet.length; i++) {
-			frequencies.add(new Frequency(alphabet[i], 0.0));
-		}
-
-		char[] sentenceArray = sentence.toUpperCase().toCharArray();
-		for (int i = 0; i < sentenceArray.length; i++) {
-			if (findIndexByLetter(alphabet, sentenceArray[i]) != -1) {
-				int index = searchLetterInList(frequencies, sentenceArray[i]);
-				if(index != -1) {
-					frequencies.get(index).increment();
-				}
-			}
-		}
-		
-		for(int i = 0; i < frequencies.size(); i++) {
-			frequencies.get(i).setAppearenceFrequency((frequencies.get(i).getAppearenceFrequency() / sentenceArray.length) * 100);
-		}
-		frequencies.sort((o1, o2) -> Double.compare(o2.getAppearenceFrequency(), o1.getAppearenceFrequency()));
-		return frequencies;
+		return wrongText ? "Le texte n'a pas pu être décodé correctement." : result.toString();
 	}
 	
-	private int searchLetterInList(List<Frequency> frequencies, char letter) {
-		for(int i = 0; i < frequencies.size(); i++) {
-			if(frequencies.get(i).getLetter() == letter) {
-				return i;
+	/**
+	 * Permet de décrypter un texte encodé en utilisant la Permutation de lettres et la fréquence d'apparition des lettres
+	 * @param alphabet : contient l'alphabet en majuscule
+	 * @param text : texte à décrypter
+	 * @return : Le résultat du texte décrypté
+	 */
+	public String decryptWithFrequencies(char[] alphabet, String text) {
+		char[] textChar = text.toCharArray();
+		boolean validText = Utils.validateTextFormat(textChar, alphabet);
+		StringBuilder result = new StringBuilder();
+		if(validText) {
+			List<Frequency> frequencies = Utils.getLettersAppearanceFrequency(alphabet, text);
+			if(!frequencies.isEmpty()) {
+				for(int i = 0; i < textChar.length; i++) {
+					int index = Utils.searchLetterInFrequencyList(frequencies, textChar[i]);
+					if(textChar[i] == ' ') {
+						result.append(' ');
+					}
+					result.append(Utils.APPEARANCE_FREQUENCIES_FR.get(index).getLetter());
+				}
 			}
+		} else {
+			System.out.println("Le texte n'a pas pu être décrypté correctement.");
 		}
-		return -1;
-	}
-
-	public String decryptWithFrequencies(char[] alphabet, String sentence) {
-		List<Frequency> frequencies = getLettersAppearanceFrequency(alphabet, sentence);
-		char[] sentenceArray = sentence.toUpperCase().toCharArray();
-		for(int i = 0; i < sentenceArray.length; i++) {
-			int index = searchLetterInList(frequencies, sentenceArray[i]);
-			sentenceArray[i] = APPEARANCE_FREQUENCIES_FR.get(index).getLetter();
-		}
-		System.out.println(sentenceArray);
-		try {
-		    Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("result.txt"), "utf-8"));
-		    writer.write(String.valueOf(sentenceArray));
-		    writer.close();
-		} catch (IOException ex) {
-			
-		}
-		
-		return String.valueOf(sentenceArray);
+		return result.toString();
 	}
 }
