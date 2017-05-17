@@ -109,8 +109,9 @@ public class Permutation {
 					int index = Utils.searchLetterInFrequencyList(frequencies, textChar[i]);
 					if(textChar[i] == ' ') {
 						result.append(' ');
+					} else if(index != -1) {
+						result.append(Utils.APPEARANCE_FREQUENCIES_FR.get(index).getLetter());
 					}
-					result.append(Utils.APPEARANCE_FREQUENCIES_FR.get(index).getLetter());
 				}
 			}
 		} else {

@@ -2,6 +2,7 @@ package com.crypto.main;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,10 +36,10 @@ public class Main {
 					vigenereAlgorithm(args);
 					break;
 				case "MerkleHellman":
-					merkelHellmanAlgorithm(args);
+					merkleHellmanAlgorithm(args);
 					break;
 				default:
-					System.out.println("Le nom de l'algorithme saisi n'est pas pris en compte.");
+					System.out.println("Le nom de l'algorithme saisi n'est pas pris en compte. Nom des algorithmes disponibles :\n- Cesar\n- Permutation\n- Vigenere\n- MerkleHellman");
 					break;
 			}
 		} else {
@@ -121,14 +122,18 @@ public class Main {
 				String text = getDecryptParameters(args);
 				List<Frequency> frequencies = Utils.getLettersAppearanceFrequency(alphabet, text);
 				StringBuilder result = new StringBuilder();
+				result.append("Pour le message : " + text + "\n");
 				for(Frequency f : frequencies) {
 					DecimalFormat formatter = new DecimalFormat("#0.00");
 					result.append("Fréquence d'apparition de la lettre " + f.getLetter() + " : " + formatter.format(f.getAppearenceFrequency()) + " %\n");
 				}
-				System.out.println(result.toString());
+				
+				if(!result.toString().isEmpty()) {
+					showAndSaveResult(result.toString(), "permutation_frequency.txt");
+				}
 				break;
 			default:
-				System.out.println("L'action demandee n'est pas prise en compte. Actions supportees : encode, decode, decrypt");
+				System.out.println("L'action demandee n'est pas prise en compte. Actions supportees : encode, decode, decrypt, frequency");
 		}
 	}
 	
@@ -166,7 +171,7 @@ public class Main {
 		}
 	}
 	
-	public static void merkelHellmanAlgorithm(String[] args){
+	public static void merkleHellmanAlgorithm(String[] args){
 		MerkleHellman merkleHellman = new MerkleHellman();
 		MerkleHellmanResult mh = new MerkleHellmanResult();
 		List<Long> decryptList = new ArrayList<Long>();
@@ -237,7 +242,6 @@ public class Main {
 			parameters[0] = getFileText(args[2]);
 		} else {
 			System.out.println("Veuillez entrer la chaine de caracteres a déchiffrer : ");
-			sc.nextLine();
 			parameters[0] = sc.nextLine();
 		}
 		if(askForKey) {
@@ -341,8 +345,7 @@ public class Main {
 		if(args.length >= 3) {
 			text = getFileText(args[2]);
 		} else {
-			System.out.println("Veuillez entrer la chaine de caracteres a décrypter : ");
-			sc.nextLine();
+			System.out.println("Veuillez entrer la chaine de caracteres : ");
 			text = sc.nextLine();
 		}
 		sc.close();
@@ -384,8 +387,13 @@ public class Main {
 		}
 	}
 	
+	public static void saveKey() {
+		
+	}
+	
 	/**
-	 * Retourne l'alphabet nécessaire pour la Permutation de lettres
+	 * Retourne l'alphabet nécessaire pour la Permutation de lettres. On essaie de le récupérer à partir du fichier passé en paramètre d'entrée,
+	 * sinon dans un fichier généré automatiquement à chaque nouvelle génération d'alphabet, ou alors on le génère aléatoirement si aucun fichier n'existe
 	 * @param args : arguments passés en paramètres du programme
 	 * @param alphabet : alphabet de base 
 	 * @return : alphabet aléatoire ou l'alphabet saisi dans un fichier par l'utilisateur
@@ -395,10 +403,24 @@ public class Main {
 		char[] permutationAlphabet = new char[26];
 		if(args.length >= 4) {
 			permutationAlphabet = getFileText(args[3]).toCharArray();
+			savePermutationAlphabetInFile(permutationAlphabet);
+		} else if(new File("permutation_random_alphabet.txt").exists()) {
+			permutationAlphabet = getFileText("permutation_random_alphabet.txt").toCharArray();
 		} else {
 			permutationAlphabet = permutation.generateRandomAlphabetKey(alphabet);
+			savePermutationAlphabetInFile(permutationAlphabet);
 		}
 		return permutationAlphabet;
+	}
+	
+	public static void savePermutationAlphabetInFile(char[] alphabet) {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter("permutation_random_alphabet.txt"));
+			bw.write(alphabet);
+			bw.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
 
