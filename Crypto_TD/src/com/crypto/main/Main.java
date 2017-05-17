@@ -6,10 +6,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import com.crypto.algo.Cesar;
+import com.crypto.algo.MerkleHellman;
+import com.crypto.algo.MerkleHellmanResult;
 import com.crypto.algo.Permutation;
 import com.crypto.algo.Vigenere;
 import com.crypto.utils.Frequency;
@@ -30,6 +33,9 @@ public class Main {
 					break;
 				case "Vigenere" :
 					vigenereAlgorithm(args);
+					break;
+				case "MerkleHellman":
+					merkelHellmanAlgorithm(args);
 					break;
 				default:
 					System.out.println("Le nom de l'algorithme saisi n'est pas pris en compte.");
@@ -160,6 +166,41 @@ public class Main {
 		}
 	}
 	
+	public static void merkelHellmanAlgorithm(String[] args){
+		MerkleHellman merkleHellman = new MerkleHellman();
+		MerkleHellmanResult mh = new MerkleHellmanResult();
+		List<Long> decryptList = new ArrayList<Long>();
+		List<Long> privateList = new ArrayList<Long>();
+		String decodedText, decryptedText;
+		char[] alphabet = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+		switch(args[1]) {
+			case "encode":
+				String[] encodeParameters = getEncodingParameters(args, false);
+				MerkleHellmanResult mhResult = merkleHellman.encode(encodeParameters[0], alphabet);
+				showAndSaveResult(mhResult.toString(), "merkleHellman_encode.txt");
+				break;
+			case "decode" :
+				mh = getDecodingParametersMH(args, false);
+				decryptList = merkleHellman.getDecryptKeyList(mh.getP(), mh.getM(), mh.getEncodeList());
+				decodedText = merkleHellman.decode(decryptList, mh.getPrivateKey(), alphabet);
+				if(!decodedText.isEmpty()) {
+					showAndSaveResult(decodedText, "merkleHellman_decoded.txt");
+				}
+				break;
+			case "decrypt" :
+				mh = getDecodingParametersMH(args, true);
+				privateList = merkleHellman.getPrivateKey(mh.getP(), mh.getM(), mh.getPublicKey());
+				decryptList = merkleHellman.getDecryptKeyList(mh.getP(), mh.getM(), mh.getEncodeList());
+				decryptedText = merkleHellman.decode(decryptList, privateList, alphabet);
+				if(!decryptedText.isEmpty()) {
+					showAndSaveResult(decryptedText, "merkleHellman_decrypted.txt");
+				}
+				break;
+			default:
+				System.out.println("L'action demandee n'est pas prise en compte. Actions supportees : encode, decode, decrypt");
+		}
+	}
+	
 	/**
 	 * Permet de récupérer les paramètres nécessaires à l'encodage d'un texte
 	 * @param args : arguments passés en paramètres du programme
@@ -173,7 +214,6 @@ public class Main {
 			parameters[0] = getFileText(args[2]);
 		} else {
 			System.out.println("Veuillez entrer la chaine de caracteres a chiffrer : ");
-			sc.nextLine();
 			parameters[0] = sc.nextLine();
 		}
 		if(askForKey) {
@@ -206,6 +246,88 @@ public class Main {
 		}
 		sc.close();
 		return parameters;
+	}
+	
+	public static MerkleHellmanResult getDecodingParametersMH(String[] args, boolean askForPublicKey){
+		MerkleHellmanResult mhResult = new MerkleHellmanResult();
+		Scanner sc = new Scanner(System.in);
+		String parameter;
+		String[] tab_parameter;
+		List<Long> privateList = new ArrayList<Long>();
+		List<Long> encodeList = new ArrayList<Long>();
+		List<Long> publicList = new ArrayList<Long>();
+		if(args.length >= 3){
+			mhResult = getFileTextMH(args[2], askForPublicKey);
+		} else{
+			
+			if(askForPublicKey){
+				System.out.println("Veuillez entrer la liste public : ");
+				parameter = sc.nextLine();
+				tab_parameter = parameter.split(" ");
+				for(int i=0; i<tab_parameter.length; i++){
+					publicList.add(i, Long.valueOf(tab_parameter[i]));
+				}
+				mhResult.setPublicKey(publicList);
+			} else{
+				System.out.println("Veuillez entrer la liste privée : ");
+				parameter = sc.nextLine();
+				tab_parameter = parameter.split(" ");
+				for(int i=0; i<tab_parameter.length; i++){
+					privateList.add(i, Long.valueOf(tab_parameter[i]));
+				}
+				mhResult.setPrivateKey(privateList);
+			}
+			System.out.println("Veuillez entrer la liste encodée : ");
+			parameter = sc.nextLine();
+			tab_parameter = parameter.split(" ");
+			for(int i=0; i<tab_parameter.length; i++){
+				encodeList.add(i, Long.valueOf(tab_parameter[i]));
+			}
+			mhResult.setEncodeList(encodeList);
+			System.out.println("Veuillez entrer p : ");
+			mhResult.setP(Long.valueOf(sc.nextLine()));
+			System.out.println("Veuillez entrer m : ");
+			mhResult.setM(Long.valueOf(sc.nextLine()));
+		}
+		sc.close();
+		return mhResult;
+	}
+	
+	public static MerkleHellmanResult getFileTextMH(String filename, boolean askForPublicKey) {
+		String[] parameters = new String[5];
+		List<Long> privateList = new ArrayList<Long>();
+		List<Long> encodeList = new ArrayList<Long>();
+		List<Long> publicList = new ArrayList<Long>();
+		MerkleHellmanResult mhResult = new MerkleHellmanResult();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(filename));
+			for(int i=0; i<5; i++){
+				parameters[i] = br.readLine();
+			}
+			br.close();
+			String[] str_privateList = parameters[0].split(" ");
+			for(int i=0; i<str_privateList.length; i++){
+				privateList.add(i, Long.valueOf(str_privateList[i]));
+			}
+			String[] str_encodeList = parameters[1].split(" ");
+			for(int i=0; i<str_encodeList.length; i++){
+				encodeList.add(i, Long.valueOf(str_encodeList[i]));
+			}
+			mhResult.setPrivateKey(privateList);
+			mhResult.setEncodeList(encodeList);
+			mhResult.setP(Long.valueOf(parameters[2]));
+			mhResult.setM(Long.valueOf(parameters[3]));
+			if(askForPublicKey){
+				String[] str_publicList = parameters[4].split(" ");
+				for(int i=0; i<str_publicList.length; i++){
+					publicList.add(i, Long.valueOf(str_publicList[i]));
+				}
+				mhResult.setPublicKey(publicList);
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return mhResult;
 	}
 	
 	/**
