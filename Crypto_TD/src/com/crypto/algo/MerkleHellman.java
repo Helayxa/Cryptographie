@@ -11,7 +11,10 @@ public class MerkleHellman {
 		
 	}
 	
-	//Génération d'une liste super croissante de longueur 5
+	/**
+	 * Génération d'une liste super croissante de longueur 5
+	 * @return
+	 */
 	public List<Long> generateSuperCroissantList(){
 		List<Long> sc = new ArrayList<Long>();
 		long nextNumber = 0;
@@ -24,7 +27,13 @@ public class MerkleHellman {
 		return sc;
 	}
 	
-	//Génération d'une liste non super croissante avec p et m premier entre eux
+	/**
+	 * Génération d'une liste non super croissante avec p et m premier entre eux
+	 * @param p long
+	 * @param m long
+	 * @param sc liste super croissante
+	 * @return
+	 */
 	public List<Long> generateNoSuperCroissanteList(long p, long m, List<Long> sc){
 		List<Long> nsc = new ArrayList<Long>();
 		for(int i = 0; i < sc.size(); i++){
@@ -33,7 +42,12 @@ public class MerkleHellman {
 		return nsc;
 	}
 	
-	//Permet de savoir si deux nombres sont premiers entre eux
+	/**
+	 * Permet de savoir si deux nombres sont premiers entre eux
+	 * @param a long
+	 * @param b long
+	 * @return
+	 */
 	public static long pgcd(long a, long b) {
 	    long r = a;
 	    while (r!=0){
@@ -44,8 +58,12 @@ public class MerkleHellman {
 	    return(Math.abs(a));
 	 }
 	
-	//Fonction permettant de retourner une liste de bits correspondant à l'index des caractères
-	//de la phrase a crytpé dans l'alphabet. Les caractères sont codés sur 5 bits
+	/**
+	 * Fonction permettant de retourner une liste de bits correspondant à l'index des caractères de la phrase a crytpé dans l'alphabet. Les caractères sont codés sur 5 bits
+	 * @param charSentence contient le message à crypté sous forme de tableau de caractères
+	 * @param alphabet contient l'alphabet sous forme de tableau de caractères
+	 * @return
+	 */
 	public List<String> getBitsSentence(char[] charSentence , char[] alphabet){
 		List<String> bitList = new ArrayList<String>();
 		int index = 0;
@@ -74,7 +92,6 @@ public class MerkleHellman {
 		StringBuffer bufBits = new StringBuffer(bits);
 		//Regroupement en bloc de taille correspondant à la taille du text
 		while(bufBits.length() != 0){
-			//if(bufBits.length() < charSentence.length){
 			if(bufBits.length() < 5){
 				bitString = bufBits.substring(0, bufBits.length());
 				for(int j = bufBits.length(); j < 5; j++){
@@ -94,7 +111,12 @@ public class MerkleHellman {
 		return bitList;
 	}
 	
-	//Fonction permettant d'encoder un message par le protocole MekleHellman
+	/**
+	 * Fonction permettant d'encoder un message par le protocole MekleHellman
+	 * @param sentence message à crypté
+	 * @param alphabet contient l'alphabet sous forme de tableau de caractères
+	 * @return
+	 */
 	public MerkleHellmanResult encode(String sentence, char[] alphabet){
 		//Suppression des caractères spéciaux
 		sentence = sentence.replaceAll("\\s+","");
@@ -139,7 +161,12 @@ public class MerkleHellman {
 		return mhResult;
 	}
 	
-	
+	/**
+	 * Algorithme d'Euclide étendu afin de calculer l'inverse modulaire
+	 * @param p long
+	 * @param m long
+	 * @return
+	 */
 	public long euclideEtendu (long p, long m){
 		long pp = p;
 		long mm = m;
@@ -171,6 +198,13 @@ public class MerkleHellman {
 	    	return t;
 	}
 	
+	/**
+	 * Permet de retrouver la liste super croissante
+	 * @param p long
+	 * @param m long
+	 * @param publicKey contient la liste non super croissante
+	 * @return
+	 */
 	public List<Long> getPrivateKey (long p, long m, List<Long> publicKey){
 		List<Long> privateKey = new ArrayList<Long>();
 		long inverse = euclideEtendu(p,m);
@@ -182,8 +216,13 @@ public class MerkleHellman {
 		return privateKey;
 	}
 	
-	
-	//Déchiffrage du message codé à l'aide de l'inverse modulaire de m
+	/**
+	 * Déchiffrage du message codé à l'aide de l'inverse modulaire de m
+	 * @param p long
+	 * @param m long
+	 * @param encodeList contient le message crypté sous forme de liste
+	 * @return
+	 */
 	public List<Long> getDecryptKeyList(long  p, long m, List<Long> encodeList){
 		List<Long> decodeList = new ArrayList<Long>();
 		long inverse = euclideEtendu(p, m);
@@ -196,8 +235,12 @@ public class MerkleHellman {
 		return decodeList;
 	}
 	
-	
-	//Algorithme glouton permettant de récupérer les bits des caratères codés
+	/**
+	 * Algorithme glouton permettant de récupérer les bits des caratères codés
+	 * @param numCrypt element de la liste obtenue par getDecryptKeyList
+	 * @param privateList liste super croissante
+	 * @return
+	 */
 	public String knapSack(long numCrypt, List<Long> privateList){
 		long sum = numCrypt;
 		String binary = "";
@@ -222,7 +265,13 @@ public class MerkleHellman {
 		return binary;
 	}
 	
-	//Fonction permettant de déchiffrer un message codé à l'aide de la clé
+	/**
+	 * Fonction permettant de déchiffrer un message codé à l'aide de la clé
+	 * @param list liste obtenue par getDecryptKeyList
+	 * @param privateList liste super croissante
+	 * @param alphabet contient l'aphabet sous forme de tableau de caractères.
+	 * @return
+	 */
 	public String decode(List<Long> list, List<Long> privateList, char[] alphabet){
 		String binaryAll = "";
 		String binary = "";
